@@ -7,10 +7,9 @@ import java.net.Socket;
 import org.json.simple.parser.ParseException;
 
 public class Main {
-    static ServerSocket server = null;
-    static Socket socket = null;
-    static BufferedReader reader = null;
-    static int port = 4333;
+    private final static int port = 4333;
+    private static ServerSocket server;
+    private static Socket socket;
     static JSONParser parser = null;
     static Object clientObject = null;
     static JSONObject clientRequest = null;
@@ -21,34 +20,45 @@ public class Main {
 
         System.out.println("Welcome to Server!");
 
-        // TODO STOPPA FELMEDDELANDET startServer: Address already in use
-        // TODO FINSLIPA CLIENT PROGRAMMET ATT DET ÄR SÄKERT MOT FEL
 
         while (true) {
-
-            startServer();
-
             try {
-                Thread.sleep(1000); // pause for 1 second
-            } catch (InterruptedException e) {
-                System.out.println("Couldn't sleep the while loop in Main for 1 second");
-            }
-        }
 
-    }
-
-    static void startServer(){
-
-            try {
                 server = new ServerSocket(port);
                 System.out.println("Server started");
                 System.out.println("Waiting for a client ...");
+
                 socket = server.accept();
                 System.out.println("Client connected");
 
-                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String line = reader.readLine();
-                System.out.println("Client line: " + line);
+                // Handle client communication, e.g., read and write messages
+                responseClient(inputClient());
+
+                // Close the client socket when the client disconnects
+                socket.close();
+                System.out.println("Client disconnected");
+
+            } catch (Exception e) {
+                System.out.println(e);
+            } finally {
+                // Close the server socket and restart the loop for a new connection
+                if (server != null) {
+                    try {
+                        server.close();
+                    } catch (IOException e) {
+                        System.out.println("Error closing the server socket");
+                    }
+                }
+            }
+        }
+    }
+
+    static String inputClient() {
+        try {
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line = reader.readLine();
+            System.out.println("Client line: " + line);
 
                 /* if (line != null) {
                     clientObject = parser.parse(line);
@@ -56,117 +66,125 @@ public class Main {
                     // ...
                 } */
 
-                try {
+            try {
 
-                    parser = new JSONParser();
-                    clientObject = parser.parse(line);
-                    clientRequest = (JSONObject) clientObject;
+                parser = new JSONParser();
+                clientObject = parser.parse(line);
+                clientRequest = (JSONObject) clientObject;
 
-                    String httpMethod = clientRequest.get("HTTPMethod").toString();
-                    String contentType = clientRequest.get("ContentType").toString();
-                    String urlParameter = clientRequest.get("URLParametrar").toString();
+                String httpMethod = clientRequest.get("HTTPMethod").toString();
+                String contentType = clientRequest.get("ContentType").toString();
+                String urlParameter = clientRequest.get("URLParametrar").toString();
 
-                    JSONObject body = null;
-                    JSONObject motorcycle = null;
-                    JSONObject motorcycleGroup = null;
+                JSONObject body = null;
+                JSONObject motorcycle = null;
+                JSONObject motorcycleGroup = null;
 
-                    System.out.println("method: " + httpMethod);
-                    System.out.println("content: " + contentType);
-                    System.out.println("url: " + urlParameter);
+                System.out.println("method: " + httpMethod);
+                System.out.println("content: " + contentType);
+                System.out.println("url: " + urlParameter);
 
-                    JSONParser parser1 = new JSONParser();
-                    String message = "";
+                String message = "";
 
-                    switch (urlParameter) {
+                switch (urlParameter) {
 
-                        case "/all":
+                    case "/all":
 
-                            // endast get method
-                            System.out.println("motorcycle radnr 86: ");
+                        // endast get method
+                        System.out.println("switch case: all");
 
-                            getJsonLine("/motorcycle/");
+                        getJsonLine("/motorcycle/");
 
-                            break;
+                        break;
 
-                        case "/sport":
+                    case "/sport":
 
-                            System.out.println("case \"/sport\":");
+                        System.out.println("case \"/sport\":");
 
-                            if (httpMethod.equals("get")){
+                        if (httpMethod.equals("get")) {
 
-                                message = getJsonLine("sport");
+                            message = getJsonLine("sport");
 
-                                System.out.println("message: " + message);
+                            System.out.println("message: " + message);
 
-                            } else {
+                        } else {
 
-                                // working well
-                                body = (JSONObject) clientRequest.get("Body");
-                                motorcycle = (JSONObject) body.get("motorcycle");
-                                motorcycleGroup = (JSONObject) motorcycle.get("sport");
-                                updateJsonFile(motorcycleGroup, "sport");
+                            // working well
+                            body = (JSONObject) clientRequest.get("Body");
+                            motorcycle = (JSONObject) body.get("motorcycle");
+                            motorcycleGroup = (JSONObject) motorcycle.get("sport");
+                            updateJsonFile(motorcycleGroup, "sport");
 
-                                message = "succefully";
+                            message = "succefully";
 
-                            }
+                        }
 
-                            break;
+                        break;
 
-                        case "/classic":
+                    case "/classic":
 
-                            System.out.println("case \"/classic\":");
+                        System.out.println("case \"/classic\":");
 
-                            if (httpMethod.equals("get")){
+                        if (httpMethod.equals("get")) {
 
-                                message = getJsonLine("classic");
+                            message = getJsonLine("classic");
 
-                                System.out.println("message: " + message);
+                            System.out.println("message: " + message);
 
-                            } else {
+                        } else {
 
-                                // working well
-                                body = (JSONObject) clientRequest.get("Body");
-                                motorcycle = (JSONObject) body.get("motorcycle");
-                                motorcycleGroup = (JSONObject) motorcycle.get("classic");
-                                updateJsonFile(motorcycleGroup, "classic");
+                            body = (JSONObject) clientRequest.get("Body");
+                            motorcycle = (JSONObject) body.get("motorcycle");
+                            motorcycleGroup = (JSONObject) motorcycle.get("classic");
+                            updateJsonFile(motorcycleGroup, "classic");
 
-                                message = "succefully";
+                            message = "succefully";
 
-                            }
+                        }
 
-                            break;
-                    }
-
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-                    JSONObject object = new JSONObject();
-
-                    // set get or post
-
-                    if (message.equals("failure")){
-                        object.put("httpStatusCode", "404");
-                        object.put("Body", message);
-                    } else if (message.equals("succefully")) {
-                        object.put("httpStatusCode", "202");
-                        object.put("Body", message);
-                    } else {
-                        object.put("httpStatusCode", "200");
-                        object.put("Body", message);
-                    }
-
-                    // Body innerhåller bara data, inga klasser
-
-                    writer.write(object.toJSONString());
-                    writer.newLine();
-                    writer.flush();
-
-
-                } catch (Exception e) {
-                    System.out.println("JSON: " + e.getMessage());
+                        break;
                 }
+
+                return message;
+
             } catch (Exception e) {
-                System.out.println("startServer: " + e.getMessage());
+                System.out.println(e);
             }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return "Error - couldn't read input";
+    }
+
+    static void responseClient(String message){
+        try {
+
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            JSONObject object = new JSONObject();
+
+            // set get or post
+
+            if (message.equals("failure")){
+                object.put("httpStatusCode", "404");
+                object.put("Body", message);
+            } else if (message.equals("succefully")) {
+                object.put("httpStatusCode", "202");
+                object.put("Body", message);
+            } else {
+                object.put("httpStatusCode", "200");
+                object.put("Body", message);
+            }
+
+            // Body innerhåller bara data, inga klasser
+
+            writer.write(object.toJSONString());
+            writer.newLine();
+            writer.flush();
+
+
+        } catch (Exception e) {
+            System.out.println("JSON: " + e.getMessage());
+        }
     }
 
     static String getJsonLine(String motorcycleType) {
