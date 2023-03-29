@@ -31,7 +31,7 @@ public class Main {
                 socket = server.accept();
                 System.out.println("Client connected");
 
-                // Handle client communication, e.g., read and write messages
+                // Handle client communication, read and write messages
                 responseClient(inputClient());
 
                 // Close the client socket when the client disconnects
