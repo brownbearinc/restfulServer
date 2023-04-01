@@ -91,7 +91,6 @@ public class Main {
 
                         } else {
 
-                            // working well
                             body = (JSONObject) clientRequest.get("Body");
                             motorcycle = (JSONObject) body.get("motorcycle");
                             motorcycleGroup = (JSONObject) motorcycle.get("sport");
@@ -140,7 +139,9 @@ public class Main {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             JSONObject object = new JSONObject();
 
-            if (message.equals("failure")){
+            System.out.println("responseClient: " + message);
+
+            if (message == null || message.equals("failure") || message.equals("Error - couldn't read input")) {
                 object.put("httpStatusCode", "404");
                 object.put("Body", message);
             } else if (message.equals("succefully")) {
