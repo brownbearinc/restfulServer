@@ -7,7 +7,7 @@ import java.net.Socket;
 import org.json.simple.parser.ParseException;
 
 public class Main {
-    private final static int port = 4333;
+    private final static int port = 4444;
     private static ServerSocket server;
     private static Socket socket;
     static JSONParser parser = null;
@@ -19,7 +19,6 @@ public class Main {
     public static void main(String[] args) {
 
         System.out.println("Welcome to Server!");
-
 
         while (true) {
             try {
@@ -60,12 +59,6 @@ public class Main {
             String line = reader.readLine();
             System.out.println("Client line: " + line);
 
-                /* if (line != null) {
-                    clientObject = parser.parse(line);
-                    clientRequest = (JSONObject) clientObject;
-                    // ...
-                } */
-
             try {
 
                 parser = new JSONParser();
@@ -88,22 +81,13 @@ public class Main {
 
                 switch (urlParameter) {
 
-                    case "/all":
-
-                        // endast get method
-                        System.out.println("switch case: all");
-
-                        getJsonLine("/motorcycle/");
-
-                        break;
-
                     case "/sport":
 
                         System.out.println("case \"/sport\":");
 
                         if (httpMethod.equals("get")) {
 
-                            message = getJsonLine("sport");
+                            message = getJsonObjectFromFile("sport");
 
                             System.out.println("message: " + message);
 
@@ -127,7 +111,7 @@ public class Main {
 
                         if (httpMethod.equals("get")) {
 
-                            message = getJsonLine("classic");
+                            message = getJsonObjectFromFile("classic");
 
                             System.out.println("message: " + message);
 
@@ -151,7 +135,7 @@ public class Main {
                 System.out.println(e);
             }
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("Client's input invalid");
         }
         return "Error - couldn't read input";
     }
@@ -161,8 +145,6 @@ public class Main {
 
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             JSONObject object = new JSONObject();
-
-            // set get or post
 
             if (message.equals("failure")){
                 object.put("httpStatusCode", "404");
@@ -175,22 +157,16 @@ public class Main {
                 object.put("Body", message);
             }
 
-            // Body innerhåller bara data, inga klasser
-
             writer.write(object.toJSONString());
             writer.newLine();
             writer.flush();
-
 
         } catch (Exception e) {
             System.out.println("JSON: " + e.getMessage());
         }
     }
 
-    static String getJsonLine(String motorcycleType) {
-
-        System.out.println("Get JSON objects from the file");
-
+    static String getJsonObjectFromFile(String motorcycleType) {
         try {
 
             // Get JSON objects from the file
@@ -199,14 +175,11 @@ public class Main {
             gson = new Gson();
             JsonObject jsonObject = gson.fromJson(clientObject.toString(), JsonObject.class);
 
-            // Get the "sport" object from the JSON file
-            // TODO change sport to class
+            // Set the "motorcycleType" object from the JSON file to Array
             JsonObject motorcycleObject = jsonObject.getAsJsonObject("motorcycle");
-
-            // if sport
             JsonArray motorcycleClassArray = motorcycleObject.getAsJsonArray(motorcycleType);
 
-            System.out.println("sport motorcycles from the jsonfile: " + motorcycleClassArray.toString());
+            System.out.println("Motorcycles from the JSON file: " + motorcycleClassArray.toString());
 
             return motorcycleClassArray.toString();
 
@@ -219,12 +192,6 @@ public class Main {
     }
 
     static String updateJsonFile(JSONObject motorcycleGroup, String motorcycleClass) {
-
-        // working well
-
-        System.out.println(motorcycleClass);
-        // output: sport
-
         try {
 
             // Get JSON objects from the file
@@ -233,12 +200,14 @@ public class Main {
             gson = new Gson();
             JsonObject jsonObject = gson.fromJson(clientObject.toString(), JsonObject.class);
 
-            // Get the "sport" object from the JSON file
-            // TODO change sport to class
+            // Get the "motorcycleClass" object from the JSON file
             JsonObject motorcycleObject = jsonObject.getAsJsonObject("motorcycle");
             JsonArray motorcycleClassArray = motorcycleObject.getAsJsonArray(motorcycleClass);
 
             System.out.println("motorcycleClassArray from the jsonfile: " + motorcycleClassArray.toString());
+
+
+            // nedanför är nytt
 
             // convert the motorcycleGroup object to a JsonObject
             JsonObject motorcycleJson = gson.fromJson(motorcycleGroup.toJSONString(), JsonObject.class);
@@ -252,15 +221,15 @@ public class Main {
             // convert the motorcycleObject to a JSON string and print it
             System.out.println("jsonfile + line from client: " + gson.toJson(motorcycleObject));
 
-            // Add sport objects to motorcycle class
-            JsonObject jsonAdd = new JsonObject();
-            jsonAdd.add("motorcycle", motorcycleObject);
+            // Add the data in motorcycle property
+            JsonObject jsonFile = new JsonObject();
+            jsonFile.add("motorcycle", motorcycleObject);
 
-            System.out.println(jsonAdd.toString());
+            System.out.println("Adding this to the JSON file: " + jsonFile.toString());
 
             // Write the updated JSONObject back to the JSON file
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filepath))) {
-                writer.write(jsonAdd.toString());
+                writer.write(jsonFile.toString());
             } catch (IOException e) {
                 e.getMessage();
             }
