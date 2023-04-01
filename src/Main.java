@@ -38,7 +38,7 @@ public class Main {
                 System.out.println("Client disconnected");
 
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println("Problem with connect");
             } finally {
                 // Close the server socket and restart the loop for a new connection
                 if (server != null) {
