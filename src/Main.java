@@ -83,8 +83,6 @@ public class Main {
 
                     case "/sport":
 
-                        System.out.println("case \"/sport\":");
-
                         if (httpMethod.equals("get")) {
 
                             message = getJsonObjectFromFile("sport");
@@ -97,17 +95,14 @@ public class Main {
                             body = (JSONObject) clientRequest.get("Body");
                             motorcycle = (JSONObject) body.get("motorcycle");
                             motorcycleGroup = (JSONObject) motorcycle.get("sport");
-                            updateJsonFile(motorcycleGroup, "sport");
+                            addNewObjectInJsonFile(motorcycleGroup, "sport");
 
                             message = "succefully";
 
                         }
-
                         break;
 
                     case "/classic":
-
-                        System.out.println("case \"/classic\":");
 
                         if (httpMethod.equals("get")) {
 
@@ -120,10 +115,9 @@ public class Main {
                             body = (JSONObject) clientRequest.get("Body");
                             motorcycle = (JSONObject) body.get("motorcycle");
                             motorcycleGroup = (JSONObject) motorcycle.get("classic");
-                            updateJsonFile(motorcycleGroup, "classic");
+                            addNewObjectInJsonFile(motorcycleGroup, "classic");
 
                             message = "succefully";
-
                         }
 
                         break;
@@ -191,7 +185,7 @@ public class Main {
 
     }
 
-    static String updateJsonFile(JSONObject motorcycleGroup, String motorcycleClass) {
+    static String addNewObjectInJsonFile(JSONObject motorcycleGroup, String motorcycleClass) {
         try {
 
             // Get JSON objects from the file
@@ -200,14 +194,11 @@ public class Main {
             gson = new Gson();
             JsonObject jsonObject = gson.fromJson(clientObject.toString(), JsonObject.class);
 
-            // Get the "motorcycleClass" object from the JSON file
+            // Get the "motorcycleClass" object from jsonObject
             JsonObject motorcycleObject = jsonObject.getAsJsonObject("motorcycle");
             JsonArray motorcycleClassArray = motorcycleObject.getAsJsonArray(motorcycleClass);
 
             System.out.println("motorcycleClassArray from the jsonfile: " + motorcycleClassArray.toString());
-
-
-            // nedanför är nytt
 
             // convert the motorcycleGroup object to a JsonObject
             JsonObject motorcycleJson = gson.fromJson(motorcycleGroup.toJSONString(), JsonObject.class);
@@ -237,7 +228,6 @@ public class Main {
         } catch (IOException | ParseException e) {
             e.getMessage();
         }
-
         return "successfully";
     }
 }
